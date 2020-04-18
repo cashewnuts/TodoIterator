@@ -21,6 +21,8 @@ import Container from '@material-ui/core/Container'
 import Box from '@material-ui/core/Box'
 import List from '@material-ui/core/List'
 import TextField from '@material-ui/core/TextField'
+import { createLogger } from '../services/logger'
+const logger = createLogger({ filename: 'TodoAppChild.tsx' })
 
 export interface TodoAppChildProps {
   todoId: string
@@ -69,7 +71,7 @@ const TodoAppChild: FunctionComponent<TodoAppChildProps> = (props) => {
           throw new Error('rootTask not found.')
         }
       } catch (err) {
-        console.log(err.message)
+        logger.error(`Error: ${err.message}`, err.stack)
         history.goBack()
         setTimeout(() => {
           history.push('/')
@@ -114,7 +116,7 @@ const TodoAppChild: FunctionComponent<TodoAppChildProps> = (props) => {
       })
       setRootTaskDone(false)
     } catch (err) {
-      console.log(err)
+      logger.error(`Error: ${err.message}`, err.stack)
     }
   }
   const handleDeleteConfrim = (taskId: string) => (

@@ -80,7 +80,7 @@ const TodoApp: FunctionComponent<TodoAppProps> = (props) => {
       setTodoList([...todoList, task])
       setTodoName('')
     } catch (err) {
-      console.log(err)
+      logger.error(`Error: ${err.message}`, err.stack)
     }
   }
   const handleDeleteConfrim = (taskId: string) => (
