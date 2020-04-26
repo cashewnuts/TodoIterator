@@ -1,13 +1,16 @@
-import * as React from 'react';
-import { render } from 'react-dom';
-import { BrowserRouter as Router } from 'react-router-dom';
+import * as React from 'react'
+import { render } from 'react-dom'
+import { BrowserRouter as Router } from 'react-router-dom'
+import { ServiceContextProvider } from './contexts/service-context'
 
-import App from './App';
+import App from './App'
 
-const rootElement = document.getElementById('root');
+const rootElement = document.getElementById('root')
 render(
   <Router>
-    <App />
+    <ServiceContextProvider>
+      <App />
+    </ServiceContextProvider>
   </Router>,
   rootElement
-);
+)
