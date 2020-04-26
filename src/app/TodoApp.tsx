@@ -16,7 +16,6 @@ import Task, { TASK_ROOT_ID, ITask } from '../models/task'
 import { db } from '../services/local-db'
 import { useHistory } from 'react-router-dom'
 import { createLogger } from '../services/logger'
-import { loadScript } from '../services/network-service'
 const logger = createLogger({ filename: 'TodoApp.tsx' })
 
 export interface TodoAppProps {}

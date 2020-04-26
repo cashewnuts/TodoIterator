@@ -4,7 +4,7 @@
     "strict": true,
     "lib": ["dom", "es2015"],
     "typeRoots": ["node_modules/@types"],
-    "types": ["gapi", "gapi.auth2"],
+    "types": ["gapi", "gapi.auth2", "gapi.client.drive"],
     "jsx": "react",
     "target": "es5",
     "allowJs": true,
