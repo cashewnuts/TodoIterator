@@ -1,12 +1,19 @@
 import { loadScript } from './network-service'
 import { promisify } from 'util'
 import { createLogger } from './logger'
+import { v4 as uuidv4 } from 'uuid'
 const logger = createLogger({ filename: 'gdrive-service.ts' })
 
 const DISCOVERY_DOCS = [
   'https://www.googleapis.com/discovery/v1/apis/drive/v3/rest',
 ]
 const scope = 'https://www.googleapis.com/auth/drive.appdata'
+
+const APP_DATA_FOLDER = 'appDataFolder'
+const COMMON_RESOURCE_OPTIONS = {
+  kind: 'drive#file',
+  parents: [APP_DATA_FOLDER],
+}
 
 export default class GdriveService {
   private initPromise: Promise<void>
@@ -59,15 +66,54 @@ export default class GdriveService {
   }
 
   async list() {
-    try {
-      const data = await gapi.client.drive.files.list({
-        spaces: 'appDataFolder',
-        pageSize: 100,
-      })
-      logger.debug('list', data)
-      return data
-    } catch (err) {
-      logger.error('Error on drive.files.list', err)
+    const data = await gapi.client.drive.files.list({
+      spaces: APP_DATA_FOLDER,
+      pageSize: 100,
+    })
+    logger.debug('list', data)
+    return data
+  }
+
+  async create({
+    id,
+    name,
+    content,
+    mimeType = 'application/json',
+  }: {
+    id?: string
+    name: string
+    content: string
+    mimeType?: string
+  }) {
+    const metadata = {
+      ...COMMON_RESOURCE_OPTIONS,
+      id,
+      name,
     }
+    const boundary = `-------${uuidv4()}`
+    const delimiter = `\r\n--${boundary}\r\n`
+    const closeDelimiter = `\r\n--${boundary}--`
+    let multipartRequestBody = ''
+    multipartRequestBody += delimiter
+    multipartRequestBody +=
+      'Content-Type: application/json; charset=UTF-8\r\n\r\n'
+    multipartRequestBody += JSON.stringify(metadata)
+    multipartRequestBody += delimiter
+    multipartRequestBody += `Content-Type: ${
+      mimeType || 'text/plain'
+    }; charset=UTF-8\r\n\r\n`
+    multipartRequestBody += content
+    multipartRequestBody += closeDelimiter
+    return await gapi.client.request({
+      path: 'https://www.googleapis.com/upload/drive/v3/files',
+      params: {
+        uploadType: 'multipart',
+      },
+      headers: {
+        'Content-Type': `multipart/mixed; boundary="${boundary}"`,
+      },
+      method: 'POST',
+      body: multipartRequestBody,
+    })
   }
 }

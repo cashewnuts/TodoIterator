@@ -36,10 +36,24 @@ export default function App() {
   const [driveAuthed, setDriveAuthed] = useState(false)
   useEffect(() => {
     const initFn = async () => {
-      await gdriveService?.load()
-      setDriveAuthed(gdriveService?.isSignedIn || false)
-      const listData = await gdriveService?.list()
-      logger.info('listData', listData)
+      try {
+        await gdriveService?.load()
+        setDriveAuthed(gdriveService?.isSignedIn || false)
+        if (!gdriveService) return
+        const { result, status } = await gdriveService.list()
+        logger.info('listData', status, result)
+        const { files } = result
+        if (!files || files.length !== 0) {
+          return
+        }
+        const createResponse = await gdriveService.create({
+          name: 'todo-list',
+          content: 'hello world!',
+        })
+        logger.info('create', createResponse)
+      } catch (err) {
+        logger.error('Error on drive.files.list', err)
+      }
     }
     initFn()
   }, [])
