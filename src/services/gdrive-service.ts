@@ -74,21 +74,35 @@ export default class GdriveService {
     return data
   }
 
+  async get({ fileId }: { fileId: string }) {
+    return await gapi.client.drive.files.get({
+      fileId,
+      alt: 'media',
+    })
+  }
+
   async create({
     id,
     name,
     content,
-    mimeType = 'application/json',
+    mimeType,
   }: {
     id?: string
     name: string
-    content: string
+    content: string | { [key: string]: unknown }
     mimeType?: string
   }) {
-    const metadata = {
-      ...COMMON_RESOURCE_OPTIONS,
-      id,
+    const method = id ? 'PATCH' : 'POST'
+    const path =
+      'https://www.googleapis.com/upload/drive/v3/files' + (id ? `/${id}` : '')
+    let metadata = {
       name,
+    }
+    if (!id) {
+      metadata = {
+        ...COMMON_RESOURCE_OPTIONS,
+        ...metadata,
+      }
     }
     const boundary = `-------${uuidv4()}`
     const delimiter = `\r\n--${boundary}\r\n`
@@ -102,17 +116,18 @@ export default class GdriveService {
     multipartRequestBody += `Content-Type: ${
       mimeType || 'text/plain'
     }; charset=UTF-8\r\n\r\n`
-    multipartRequestBody += content
+    multipartRequestBody +=
+      typeof content === 'string' ? content : JSON.stringify(content)
     multipartRequestBody += closeDelimiter
     return await gapi.client.request({
-      path: 'https://www.googleapis.com/upload/drive/v3/files',
+      path,
       params: {
         uploadType: 'multipart',
       },
       headers: {
         'Content-Type': `multipart/mixed; boundary="${boundary}"`,
       },
-      method: 'POST',
+      method,
       body: multipartRequestBody,
     })
   }

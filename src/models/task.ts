@@ -1,6 +1,7 @@
 import { db } from '../services/local-db'
 import { v4 as uuidv4 } from 'uuid'
 import { createLogger } from '../services/logger'
+import _uniq from 'lodash/uniq'
 const logger = createLogger({ filename: 'task.ts' })
 
 export const TASK_ROOT_ID = 'root-task-id'
@@ -12,6 +13,8 @@ export interface ITask {
   children: string[]
   description: string
   isDone: boolean
+  createdAt?: number
+  updatedAt?: number
 }
 
 export default class Task implements ITask {
@@ -19,7 +22,9 @@ export default class Task implements ITask {
   name: string
   description: string
   children: string[]
-  isDone: boolean = false
+  isDone: boolean
+  createdAt: number
+  updatedAt: number
   parent?: string
 
   constructor({
@@ -29,17 +34,34 @@ export default class Task implements ITask {
     isDone = false,
     id = uuidv4(),
     parent,
+    createdAt = Date.now(),
+    updatedAt = Date.now(),
   }: ITask) {
     this.name = name
     this.description = description
     this.children = children
     this.isDone = isDone
+    this.createdAt = createdAt
+    this.updatedAt = updatedAt
     if (id) this.id = id
     if (parent) this.parent = parent
   }
 
+  async getParent() {
+    if (!this.parent) return null
+    const p = await db.tasks.get(this.parent)
+    if (p instanceof Task) {
+      return p
+    } else {
+      return null
+    }
+  }
+
   async save() {
     logger.debug('task save', this)
+    const now = Date.now()
+    if (!this.createdAt) this.createdAt = now
+    this.updatedAt = now
     const taskId = await db.tasks.put(this)
     this.id = taskId
     return this
@@ -80,7 +102,7 @@ export default class Task implements ITask {
       if (task instanceof Task) {
         await task.save()
       }
-      const newChildren = [...this.children, taskId]
+      const newChildren = _uniq([...this.children, taskId])
       await db.tasks.update(id, {
         children: newChildren,
       })
