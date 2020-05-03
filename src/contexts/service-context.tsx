@@ -1,24 +1,31 @@
-import React, {
-  createContext,
-  FunctionComponent,
-  PropsWithChildren,
-  useState,
-} from 'react'
-import GdriveService from '../services/gdrive-service'
+import React, { createContext, PropsWithChildren, useState } from 'react'
+import GdriveProvider from '../services/providers/gdrive-provider'
+import StoreService from '../services/store-service'
+import { EventEmitter } from 'events'
 
 export interface ServiceContextType {
-  gdriveService?: GdriveService
+  gdriveProvider: GdriveProvider
+  storeService: StoreService
 }
 
-const ServiceContext = createContext<ServiceContextType>({})
+const ServiceContext = createContext<ServiceContextType>(
+  {} as ServiceContextType
+)
 
-export const ServiceContextProvider: FunctionComponent<{}> = (
-  props: PropsWithChildren<{}>
+export interface ServiceContextProviderProps {
+  storeEvent: EventEmitter
+}
+
+export const ServiceContextProvider = (
+  props: PropsWithChildren<ServiceContextProviderProps>
 ) => {
-  const [gdriveService] = useState(new GdriveService())
+  const [gdriveProvider] = useState(new GdriveProvider())
+  const [storeService] = useState(
+    new StoreService(gdriveProvider, props.storeEvent)
+  )
 
   return (
-    <ServiceContext.Provider value={{ gdriveService }}>
+    <ServiceContext.Provider value={{ gdriveProvider, storeService }}>
       {props.children}
     </ServiceContext.Provider>
   )

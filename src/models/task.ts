@@ -6,6 +6,8 @@ const logger = createLogger({ filename: 'task.ts' })
 
 export const TASK_ROOT_ID = 'root-task-id'
 
+type TaskOrString = Task | string
+
 export interface ITask {
   id?: string
   name: string
@@ -57,6 +59,17 @@ export default class Task implements ITask {
     }
   }
 
+  async repareChildren() {
+    if (!this.id) return false
+    const children = await db.tasks.where({ parent: this.id }).toArray()
+    const childrenIds = children.filter(Boolean).map((c) => c.id) as string[]
+    await db.tasks.update(this.id, {
+      children: childrenIds,
+    })
+    this.children = childrenIds
+    return true
+  }
+
   async save() {
     logger.debug('task save', this)
     const now = Date.now()
@@ -93,22 +106,35 @@ export default class Task implements ITask {
     })
   }
 
-  async saveChildren(task: Task | string) {
+  async saveChildren(task: TaskOrString | TaskOrString[]) {
     return db.transaction('rw', db.tasks, async () => {
-      const id = this.id as string
-      await this.save()
-      const taskId = task instanceof Task ? (task.id as string) : task
-
-      if (task instanceof Task) {
-        await task.save()
+      if (!this.id) {
+        await this.save()
       }
-      const newChildren = _uniq([...this.children, taskId])
+      const id = this.id as string
+      const tasks = task instanceof Array ? task : [task]
+      await Promise.all(
+        tasks.map(async (task) => {
+          if (task instanceof Task && !task.id) {
+            await task.save()
+          }
+        })
+      )
+      const taskIds = tasks.map((task) => {
+        return task instanceof Task ? (task.id as string) : task
+      })
+
+      const newChildren = _uniq([...this.children, ...taskIds])
       await db.tasks.update(id, {
         children: newChildren,
       })
-      await db.tasks.update(taskId, {
-        parent: id,
-      })
+      await Promise.all(
+        taskIds.map((taskId) => {
+          return db.tasks.update(taskId, {
+            parent: id,
+          })
+        })
+      )
       this.children = newChildren
     })
   }
@@ -138,5 +164,3 @@ export default class Task implements ITask {
     })
   }
 }
-
-db.tasks.mapToClass(Task)

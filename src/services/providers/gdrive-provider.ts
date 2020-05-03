@@ -1,8 +1,8 @@
-import { loadScript } from './network-service'
+import { loadScript } from '../network-service'
 import { promisify } from 'util'
-import { createLogger } from './logger'
+import { createLogger } from '../logger'
 import { v4 as uuidv4 } from 'uuid'
-const logger = createLogger({ filename: 'gdrive-service.ts' })
+const logger = createLogger({ filename: 'gdrive-provider.ts' })
 
 const DISCOVERY_DOCS = [
   'https://www.googleapis.com/discovery/v1/apis/drive/v3/rest',
@@ -13,6 +13,13 @@ const APP_DATA_FOLDER = 'appDataFolder'
 const COMMON_RESOURCE_OPTIONS = {
   kind: 'drive#file',
   parents: [APP_DATA_FOLDER],
+}
+
+export interface CreateResponse {
+  kind: string
+  id: string
+  name: string
+  mimeType: string
 }
 
 export default class GdriveService {
@@ -119,7 +126,7 @@ export default class GdriveService {
     multipartRequestBody +=
       typeof content === 'string' ? content : JSON.stringify(content)
     multipartRequestBody += closeDelimiter
-    return await gapi.client.request({
+    return await gapi.client.request<CreateResponse>({
       path,
       params: {
         uploadType: 'multipart',
