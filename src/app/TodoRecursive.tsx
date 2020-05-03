@@ -13,7 +13,7 @@ const TodoRecursive: FunctionComponent<TodoRecursiveProps> = (props) => {
       <Route path={`${url}/:todoId`}>
         <TodoRecursive />
       </Route>
-      <Route path={`${url}`}>
+      <Route path={'/nest/*'}>
         <TodoAppChild todoId={todoId} />
       </Route>
     </Switch>

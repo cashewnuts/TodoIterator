@@ -52,7 +52,7 @@ const TodoAppChild: FunctionComponent<TodoAppChildProps> = (props) => {
     const asyncInitFn = async () => {
       try {
         if (!todoId) throw new Error('todoId not found')
-        const rootTask = await db.tasks.get(todoId)
+        const rootTask = await db.tasks.where('id').startsWith(todoId).first()
         if (rootTask instanceof Task) {
           setRootTask(rootTask)
           setRootTaskDone(rootTask.isDone)
@@ -83,7 +83,7 @@ const TodoAppChild: FunctionComponent<TodoAppChildProps> = (props) => {
   }, [todoId, history])
 
   const handleItemClick = (value: any) => (event: any) => {
-    history.push(`${url}/${value}`)
+    history.push(`${url}/${value.substring(0, 7)}`)
   }
   const handleTodoNameChange = (event: ChangeEvent<HTMLInputElement>) => {
     const { value } = event.target

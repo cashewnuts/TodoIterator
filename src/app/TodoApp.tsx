@@ -68,7 +68,7 @@ const TodoApp: FunctionComponent<TodoAppProps> = (props) => {
   }, [storeEvent])
 
   const handleItemClick = (value: any) => (event: any) => {
-    history.push(`${value}`)
+    history.push(`/nest/${value.substring(0, 7)}`)
   }
   const handleAddingTodoNameChange = (event: ChangeEvent<HTMLInputElement>) => {
     const { value } = event.target

@@ -73,7 +73,7 @@ export default function App() {
         </Toolbar>
       </AppBar>
       <Switch>
-        <Route path="/:todoId">
+        <Route path="/nest/:todoId">
           <TodoRecursive />
         </Route>
         <Route path="/">
