@@ -15,3 +15,10 @@ export const loadScript = (url: string) => {
   }
   return scriptLoadingPromises[url]
 }
+
+export const makeQueryString = (obj: { [key: string]: string }) => {
+  const esc = encodeURIComponent
+  return Object.keys(obj)
+    .map((k) => esc(k) + '=' + esc(obj[k] as string))
+    .join('&')
+}

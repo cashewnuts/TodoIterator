@@ -1,4 +1,4 @@
-import { loadScript } from '../network-service'
+import { loadScript, makeQueryString } from '../helpers/network-helper'
 import { promisify } from 'util'
 import { createLogger } from '../logger'
 import { v4 as uuidv4 } from 'uuid'
@@ -20,6 +20,7 @@ export interface CreateResponse {
   id: string
   name: string
   mimeType: string
+  modifiedTime: string
 }
 
 export default class GdriveService {
@@ -73,18 +74,32 @@ export default class GdriveService {
   }
 
   async list() {
-    const data = await gapi.client.drive.files.list({
-      spaces: APP_DATA_FOLDER,
-      pageSize: 100,
-    })
-    logger.debug('list', data)
-    return data
+    try {
+      const data = await gapi.client.drive.files.list({
+        fields: 'files(id, name, mimeType, modifiedTime)',
+        spaces: APP_DATA_FOLDER,
+        pageSize: 100,
+      })
+      logger.debug('list', data)
+      return data
+    } catch (err) {
+      const { error } = err.result
+      logger.error('list', error.message, error.errors)
+      throw err
+    }
   }
 
-  async get({ fileId }: { fileId: string }) {
+  async getFile({ fileId }: { fileId: string }) {
     return await gapi.client.drive.files.get({
       fileId,
       alt: 'media',
+    })
+  }
+
+  async getMeta({ fileId }: { fileId: string }) {
+    return await gapi.client.drive.files.get({
+      fields: 'id, name, mimeType, modifiedTime',
+      fileId,
     })
   }
 
@@ -100,8 +115,12 @@ export default class GdriveService {
     mimeType?: string
   }) {
     const method = id ? 'PATCH' : 'POST'
-    const path =
-      'https://www.googleapis.com/upload/drive/v3/files' + (id ? `/${id}` : '')
+    const query = makeQueryString({
+      fields: 'id,name,mimeType,modifiedTime',
+    })
+    const path = `https://www.googleapis.com/upload/drive/v3/files/${
+      id ? id : ''
+    }?${query}`
     let metadata = {
       name,
     }

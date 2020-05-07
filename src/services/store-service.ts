@@ -19,6 +19,7 @@ export default class StoreService {
     StoreFile,
     {
       fileId: string
+      modifiedAt: number
       content?: string
     }
   >
@@ -34,17 +35,34 @@ export default class StoreService {
     return this.gdriveProvider.isSignedIn
   }
 
-  async ready() {
+  public async ready() {
     await this.loadPromise
     return this.isSignedIn
   }
 
-  async init() {
+  public async init() {
     const isReady = await this.ready()
     if (!isReady) return
     await this.initFileMap()
     await this.loadInitialContent()
     this.storeEvent.emit(INITIATED)
+  }
+
+  public async sync() {
+    const isReady = await this.ready()
+    const doingMeta = this.fileMap.get(StoreFile.DOING)
+    if (!isReady || !doingMeta) return
+    const cloudDoing = await this.gdriveProvider.getMeta({
+      fileId: doingMeta.fileId,
+    })
+    if (
+      new Date(cloudDoing.result.modifiedTime || 0).getTime() >
+      doingMeta.modifiedAt
+    ) {
+      logger.debug('load before sync', cloudDoing, doingMeta)
+      await this.init()
+    }
+    await this.saveDoings(doingMeta.fileId)
   }
 
   private async loadInitialContent() {
@@ -91,17 +109,31 @@ export default class StoreService {
           }
         })
       )
-      const tasks = await db.tasks.toArray()
-      const createResponse = await this.gdriveProvider.create({
-        id: doingId,
-        name: StoreFile.DOING,
-        content: JSON.stringify(tasks),
-      })
-      logger.info('create', createResponse)
+      await this.saveDoings(doingId)
     }
   }
 
-  async createFile(name: string, content: string | { [key: string]: unknown }) {
+  private async saveDoings(fileId: string) {
+    const tasks = await db.tasks.toArray()
+    const createResponse = await this.gdriveProvider.create({
+      id: fileId,
+      name: StoreFile.DOING,
+      content: JSON.stringify(tasks),
+    })
+    const { modifiedTime } = createResponse.result
+    const before = this.fileMap.get(StoreFile.DOING)
+    this.fileMap.set(StoreFile.DOING, {
+      ...before,
+      fileId,
+      modifiedAt: new Date(modifiedTime).getTime(),
+    })
+    logger.info('create', createResponse)
+  }
+
+  private async createFile(
+    name: string,
+    content: string | { [key: string]: unknown }
+  ) {
     const response = await this.gdriveProvider.create({
       name,
       content,
@@ -116,8 +148,8 @@ export default class StoreService {
     return response.result
   }
 
-  async getFile(fileId: string) {
-    const response = await this.gdriveProvider.get({
+  private async getFile(fileId: string) {
+    const response = await this.gdriveProvider.getFile({
       fileId,
     })
     logger.info(
@@ -142,7 +174,10 @@ export default class StoreService {
           filename,
           JSON.stringify([])
         )
-        return createResponse.id
+        return {
+          id: createResponse.id,
+          modifiedAt: new Date(createResponse.modifiedTime).getTime(),
+        }
       }
       const todoMeta = files.find((f) => f.name === filename)
       if (!todoMeta) {
@@ -150,9 +185,18 @@ export default class StoreService {
           filename,
           JSON.stringify([])
         )
-        return createResponse.id
+        return {
+          id: createResponse.id,
+          modifiedAt: new Date(createResponse.modifiedTime).getTime(),
+        }
       }
-      return todoMeta.id as string
+      logger.debug('gdrive file meta', todoMeta)
+      return {
+        id: todoMeta.id as string,
+        modifiedAt: todoMeta.modifiedTime
+          ? new Date(todoMeta.modifiedTime).getTime()
+          : Date.now(),
+      }
     }
     const [doing, archived, deleted, state] = await Promise.all([
       await initOrCreateId(StoreFile.DOING, files),
@@ -161,16 +205,20 @@ export default class StoreService {
       await initOrCreateId(StoreFile.STATE, files),
     ])
     this.fileMap.set(StoreFile.DOING, {
-      fileId: doing,
+      fileId: doing.id,
+      modifiedAt: doing.modifiedAt,
     })
     this.fileMap.set(StoreFile.ARCHIVED, {
-      fileId: archived,
+      fileId: archived.id,
+      modifiedAt: archived.modifiedAt,
     })
     this.fileMap.set(StoreFile.DELETED, {
-      fileId: deleted,
+      fileId: deleted.id,
+      modifiedAt: deleted.modifiedAt,
     })
     this.fileMap.set(StoreFile.STATE, {
-      fileId: state,
+      fileId: state.id,
+      modifiedAt: state.modifiedAt,
     })
     logger.debug('initFileMap: fileIdMap', this.fileMap)
   }

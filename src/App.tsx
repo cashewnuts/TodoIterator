@@ -55,6 +55,16 @@ export default function App() {
     const isSignedIn = storeService.isSignedIn
     setDriveAuthed(isSignedIn || false)
   }
+  const handleSync = async () => {
+    try {
+      setLoading(true)
+      await storeService.sync()
+    } catch (err) {
+      logger.error('handleSync', err.message, err)
+    } finally {
+      setLoading(false)
+    }
+  }
   return (
     <div className={classes.app}>
       <AppBar position="static">
@@ -71,9 +81,11 @@ export default function App() {
             )}
             {driveAuthed ? (
               <>
-                <IconButton color="inherit">
-                  <SyncIcon />
-                </IconButton>
+                {!loading && (
+                  <IconButton color="inherit" onClick={handleSync}>
+                    <SyncIcon />
+                  </IconButton>
+                )}
                 <IconButton color="inherit">
                   <GdriveIcon fontSize="large" />
                 </IconButton>
