@@ -18,6 +18,7 @@ import GdriveIcon from './components/icons/GdriveIcon'
 import ServiceContext from './contexts/service-context'
 import MenuItem from '@material-ui/core/MenuItem'
 import Menu from '@material-ui/core/Menu'
+import { useHistory } from 'react-router-dom'
 const logger = createLogger({ filename: 'App.tsx' })
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -37,6 +38,7 @@ const useStyles = makeStyles((_theme) => ({
 
 export default function App() {
   const classes = useStyles()
+  const history = useHistory()
   const { storeService } = useContext(ServiceContext)
   const [anchorEl, setAnchorEl] = useState<Element | null>(null)
   const [driveAuthed, setDriveAuthed] = useState(false)
@@ -48,11 +50,13 @@ export default function App() {
     const initFn = async () => {
       try {
         setLoading(true)
-        await storeService.init()
+        await storeService.ready()
         setDriveAuthed(storeService.isSignedIn)
+        await storeService.init()
       } catch (err) {
         logger.error('Error while App initiating', err)
       } finally {
+        setDriveAuthed(storeService.isSignedIn)
         setLoading(false)
       }
     }
@@ -82,8 +86,18 @@ export default function App() {
     setAnchorEl(null)
   }
   const handleDriveLogout = async () => {
-    handleDriveMenuClose()
-    await storeService.logout()
+    try {
+      setLoading(true)
+      handleDriveMenuClose()
+      await storeService.logout()
+      setDriveAuthed(false)
+      history.push('/')
+      window.location.reload(false)
+    } catch (err) {
+      logger.error('logout', err.message, err)
+    } finally {
+      setLoading(false)
+    }
   }
   const renderDriveMenu = (
     <Menu

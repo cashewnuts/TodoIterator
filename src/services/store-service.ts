@@ -71,6 +71,8 @@ export default class StoreService {
 
   public async logout() {
     await this.sync()
+    await this.gdriveProvider.signOut()
+    await db.tasks.toCollection().delete()
   }
 
   private async loadInitialContent() {
