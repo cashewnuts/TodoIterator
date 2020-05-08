@@ -102,7 +102,7 @@ export default function App() {
   const renderDriveMenu = (
     <Menu
       anchorEl={anchorEl}
-      anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+      anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
       id="drive-menu"
       keepMounted
       transformOrigin={{ vertical: 'top', horizontal: 'right' }}
