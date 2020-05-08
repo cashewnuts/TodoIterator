@@ -9,14 +9,16 @@ import {
 } from 'react-router-dom'
 import { db } from '../services/local-db'
 
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface TodoRecursiveProps {}
 
 const TodoBreadcrumbs: FunctionComponent<TodoRecursiveProps> = () => {
-  let { url } = useRouteMatch()
+  const { url } = useRouteMatch()
   const [breads, setBreads] = useState<{ id: string; href: string }[]>([])
   useEffect(() => {
     const asyncFn = async () => {
       const paths = url.split('/').filter(Boolean)
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const [__, ...pathTails] = paths
       const _breads = await Promise.all(
         pathTails.map(async (id, index, array) => {

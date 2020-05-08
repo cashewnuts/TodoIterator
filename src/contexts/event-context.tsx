@@ -26,7 +26,7 @@ export const EventContextProvider: FunctionComponent<EventContextProviderProps> 
     storeEvent: new EventEmitter(),
   })
   // Setup event debugging listener
-  Object.keys(EventNames).map((key: string) => {
+  Object.keys(EventNames).forEach((key: string) => {
     const eventConst = (EventNames as { [key: string]: unknown })[key]
     if (typeof eventConst !== 'string') return
     eventContext.storeEvent.on(
