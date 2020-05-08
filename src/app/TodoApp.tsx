@@ -5,6 +5,7 @@ import {
   SyntheticEvent,
   ChangeEvent,
   FunctionComponent,
+  useContext,
 } from 'react'
 import Box from '@material-ui/core/Box'
 import List from '@material-ui/core/List'
@@ -16,12 +17,16 @@ import Task, { TASK_ROOT_ID, ITask } from '../models/task'
 import { db } from '../services/local-db'
 import { useHistory } from 'react-router-dom'
 import { createLogger } from '../services/logger'
-import { loadScript } from '../services/network-service'
+import EventContext from '../contexts/event-context'
+import { INITIATED } from '../constants/store-event'
 const logger = createLogger({ filename: 'TodoApp.tsx' })
 
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface TodoAppProps {}
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const TodoApp: FunctionComponent<TodoAppProps> = (props) => {
+  const { storeEvent } = useContext(EventContext)
   const [todoName, setTodoName] = useState<string>('')
   const [todoList, setTodoList] = useState<Task[]>([])
   const [rootTask, setRootTask] = useState<Task>()
@@ -32,14 +37,20 @@ const TodoApp: FunctionComponent<TodoAppProps> = (props) => {
 
   useEffect(() => {
     const asyncFn = async () => {
+      logger.debug('initial asyncFn')
       const rootTask = await db.tasks.get(TASK_ROOT_ID)
       if (rootTask instanceof Task) {
+        await rootTask.repareChildren()
         setRootTask(rootTask)
         const tasks = await db.tasks
           .where('id')
           .anyOf(rootTask.children)
           .toArray()
-        setTodoList(tasks.map((t) => (t instanceof Task ? t : new Task(t))))
+        const _todoList = tasks.map((t) =>
+          t instanceof Task ? t : new Task(t)
+        )
+        logger.debug('setTodoList', _todoList)
+        setTodoList(_todoList)
       } else {
         const rootTask = new Task({
           id: TASK_ROOT_ID,
@@ -52,11 +63,12 @@ const TodoApp: FunctionComponent<TodoAppProps> = (props) => {
         setRootTask(rootTask)
       }
     }
+    storeEvent.on(INITIATED, asyncFn)
     asyncFn()
-  }, [])
+  }, [storeEvent])
 
   const handleItemClick = (value: any) => (event: any) => {
-    history.push(`${value}`)
+    history.push(`/nest/${value.substring(0, 7)}`)
   }
   const handleAddingTodoNameChange = (event: ChangeEvent<HTMLInputElement>) => {
     const { value } = event.target
