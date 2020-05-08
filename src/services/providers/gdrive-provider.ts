@@ -73,6 +73,12 @@ export default class GdriveService {
     return this._isSignedIn
   }
 
+  async signOut() {
+    await gapi.auth2.getAuthInstance().signOut()
+    this._isSignedIn = false
+    logger.debug('signOut', this._isSignedIn)
+  }
+
   async list() {
     try {
       const data = await gapi.client.drive.files.list({

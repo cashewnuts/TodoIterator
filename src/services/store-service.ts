@@ -65,6 +65,14 @@ export default class StoreService {
     await this.saveDoings(doingMeta.fileId)
   }
 
+  public async login() {
+    await this.gdriveProvider.signIn()
+  }
+
+  public async logout() {
+    await this.sync()
+  }
+
   private async loadInitialContent() {
     // Assume DOING fileId exists
     const doingId = this.fileMap.get(StoreFile.DOING)?.fileId as string
