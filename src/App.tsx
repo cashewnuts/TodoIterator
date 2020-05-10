@@ -2,6 +2,7 @@ import React, { useContext, SyntheticEvent } from 'react'
 import { useEffect, useState } from 'react'
 import TodoApp from './app/TodoApp'
 import TodoRecursive from './app/TodoRecursive'
+import TodoQueueApp from './app/TodoQueueApp'
 import './styles.css'
 import { Switch, Route, Link } from 'react-router-dom'
 import AppBar from '@material-ui/core/AppBar'
@@ -18,6 +19,7 @@ import GdriveIcon from './components/icons/GdriveIcon'
 import ServiceContext from './contexts/service-context'
 import MenuItem from '@material-ui/core/MenuItem'
 import Menu from '@material-ui/core/Menu'
+import { LAST_SYNCED, RELOAD_THRESHOLD } from './constants/local-storage'
 import { useHistory } from 'react-router-dom'
 const logger = createLogger({ filename: 'App.tsx' })
 
@@ -58,7 +60,7 @@ export default function App() {
             10
           )
           if (lastLoadedTime + RELOAD_THRESHOLD < Date.now()) {
-        await storeService.init()
+            await storeService.init()
           }
         }
       } catch (err) {
@@ -164,6 +166,9 @@ export default function App() {
       <Switch>
         <Route path="/nest/:todoId">
           <TodoRecursive />
+        </Route>
+        <Route path="/queue">
+          <TodoQueueApp />
         </Route>
         <Route path="/">
           <TodoApp />

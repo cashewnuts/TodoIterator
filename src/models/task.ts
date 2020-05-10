@@ -7,12 +7,14 @@ const logger = createLogger({ filename: 'task.ts' })
 export const TASK_ROOT_ID = 'root-task-id'
 
 type TaskOrString = Task | string
+type NodeType = 'leaf' | 'branch'
 
 export interface ITask {
   id?: string
   name: string
   parent?: string
   children: string[]
+  nodeType?: NodeType
   description: string
   isDone: boolean
   createdAt?: number
@@ -28,6 +30,7 @@ export default class Task implements ITask {
   createdAt: number
   updatedAt: number
   parent?: string
+  nodeType?: NodeType
 
   constructor({
     name,

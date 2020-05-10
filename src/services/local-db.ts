@@ -12,13 +12,14 @@ export class TodoIteratorDatabase extends Dexie {
     // (Here's where the implicit table props are dynamically created)
     //
     this.version(1).stores({
-      tasks: `id, name, *children, parent, updatedAt`,
+      tasks: `id, name, *children, parent, nodeType, updatedAt`,
     })
 
     // The following lines are needed for it to work across typescipt using babel-preset-typescript:
     this.tasks = this.table('tasks')
 
     this.onPopulate()
+    this.setupHooks()
 
     this.tasks.mapToClass(Task)
   }
@@ -34,6 +35,24 @@ export class TodoIteratorDatabase extends Dexie {
         createdAt: Date.now(),
         updatedAt: Date.now(),
       })
+    })
+  }
+
+  setupHooks() {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    this.tasks.hook('creating', function (primKey, obj, trans) {
+      const isLeaf = !Array.isArray(obj.children) || obj.children.length === 0
+      obj.nodeType = isLeaf ? 'leaf' : 'branch'
+    })
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    this.tasks.hook('updating', function (mods, primKey, obj, trans) {
+      if (mods.hasOwnProperty('children')) {
+        const children = (mods as { children: unknown[] }).children
+        const isLeaf = !Array.isArray(children) || children.length === 0
+        return {
+          nodeType: isLeaf ? 'leaf' : 'branch',
+        }
+      }
     })
   }
 }
