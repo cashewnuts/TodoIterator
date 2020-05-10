@@ -4,6 +4,7 @@ import Task, { ITask, TASK_ROOT_ID } from '../models/task'
 import { createLogger } from './logger'
 import { EventEmitter } from 'events'
 import { INITIATED } from '../constants/store-event'
+import { LAST_SYNCED } from '../constants/local-storage'
 const logger = createLogger({ filename: 'store-service.ts' })
 
 export enum StoreFile {
@@ -45,6 +46,7 @@ export default class StoreService {
     if (!isReady) return
     await this.initFileMap()
     await this.loadInitialContent()
+    localStorage.setItem(LAST_SYNCED, '' + Date.now())
     this.storeEvent.emit(INITIATED)
   }
 
@@ -63,6 +65,7 @@ export default class StoreService {
       await this.init()
     }
     await this.saveDoings(doingMeta.fileId)
+    localStorage.setItem(LAST_SYNCED, '' + Date.now())
   }
 
   public async login() {
@@ -73,6 +76,7 @@ export default class StoreService {
     await this.sync()
     await this.gdriveProvider.signOut()
     await db.tasks.toCollection().delete()
+    localStorage.removeItem(LAST_SYNCED)
   }
 
   private async loadInitialContent() {

@@ -52,7 +52,15 @@ export default function App() {
         setLoading(true)
         await storeService.ready()
         setDriveAuthed(storeService.isSignedIn)
+        if (storeService.isSignedIn) {
+          const lastLoadedTime = parseInt(
+            localStorage.getItem(LAST_SYNCED) || '0',
+            10
+          )
+          if (lastLoadedTime + RELOAD_THRESHOLD < Date.now()) {
         await storeService.init()
+          }
+        }
       } catch (err) {
         logger.error('Error while App initiating', err)
       } finally {
