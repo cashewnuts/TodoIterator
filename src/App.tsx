@@ -21,6 +21,7 @@ import MenuItem from '@material-ui/core/MenuItem'
 import Menu from '@material-ui/core/Menu'
 import { LAST_SYNCED, RELOAD_THRESHOLD } from './constants/local-storage'
 import { useHistory } from 'react-router-dom'
+import { db } from './services/local-db'
 const logger = createLogger({ filename: 'App.tsx' })
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -71,6 +72,17 @@ export default function App() {
       }
     }
     initFn()
+
+    window.onunhandledrejection = async (event: PromiseRejectionEvent) => {
+      logger.error('onunhandledrejection', event)
+      if (await db.handleRejection(event.reason)) {
+        event.preventDefault()
+        event.stopPropagation()
+        event.cancelBubble = true
+        localStorage.removeItem(LAST_SYNCED)
+        window.location.reload()
+      }
+    }
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
   const handleAuth = async () => {
     await storeService.login()
