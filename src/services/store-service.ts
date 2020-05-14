@@ -54,6 +54,14 @@ export default class StoreService {
     localStorage.removeItem(LAST_SYNCED)
   }
 
+  public havePassedSinceLastSync(milliSec: number) {
+    const lastLoadedTime = parseInt(
+      localStorage.getItem(LAST_SYNCED) || '0',
+      10
+    )
+    return lastLoadedTime + milliSec < Date.now()
+  }
+
   public async sync() {
     const isReady = await this.ready()
     const doingMeta = this.fileMap.get(StoreFile.DOING)
