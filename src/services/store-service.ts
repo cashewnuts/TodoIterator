@@ -15,7 +15,7 @@ export enum StoreFile {
 }
 
 export default class StoreService {
-  loadPromise: Promise<void>
+  loadGapiPromise: Promise<void>
   fileMap: Map<
     StoreFile,
     {
@@ -28,7 +28,7 @@ export default class StoreService {
     private gdriveProvider: GdriveProvider,
     private storeEvent: EventEmitter
   ) {
-    this.loadPromise = gdriveProvider.load()
+    this.loadGapiPromise = gdriveProvider.loadScript()
     this.fileMap = new Map()
   }
 
@@ -37,7 +37,7 @@ export default class StoreService {
   }
 
   public async ready() {
-    await this.loadPromise
+    await this.loadGapiPromise
     return this.isSignedIn
   }
 
@@ -48,6 +48,10 @@ export default class StoreService {
     await this.loadInitialContent()
     localStorage.setItem(LAST_SYNCED, '' + Date.now())
     this.storeEvent.emit(INITIATED)
+  }
+
+  public reset() {
+    localStorage.removeItem(LAST_SYNCED)
   }
 
   public async sync() {
@@ -76,7 +80,7 @@ export default class StoreService {
     await this.sync()
     await this.gdriveProvider.signOut()
     await db.tasks.toCollection().delete()
-    localStorage.removeItem(LAST_SYNCED)
+    this.reset()
   }
 
   private async loadInitialContent() {

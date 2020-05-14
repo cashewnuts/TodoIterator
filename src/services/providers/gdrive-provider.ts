@@ -62,7 +62,10 @@ export default class GdriveService {
     this._isSignedIn = gapi.auth2.getAuthInstance().isSignedIn.get()
   }
 
-  async load() {
+  async loadScript() {
+    if (!this.initPromise) {
+      this.initPromise = this.load3dPartyScript()
+    }
     return this.initPromise
   }
 
