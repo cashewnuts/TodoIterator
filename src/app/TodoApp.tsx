@@ -38,29 +38,33 @@ const TodoApp: FunctionComponent<TodoAppProps> = (props) => {
   useEffect(() => {
     const asyncFn = async () => {
       logger.debug('initial asyncFn')
-      const rootTask = await db.tasks.get(TASK_ROOT_ID)
-      if (rootTask instanceof Task) {
-        await rootTask.repareChildren()
-        setRootTask(rootTask)
-        const tasks = await db.tasks
-          .where('id')
-          .anyOf(rootTask.children)
-          .toArray()
-        const _todoList = tasks.map((t) =>
-          t instanceof Task ? t : new Task(t)
-        )
-        logger.debug('setTodoList', _todoList)
-        setTodoList(_todoList)
-      } else {
-        const rootTask = new Task({
-          id: TASK_ROOT_ID,
-          name: 'root',
-          description: 'root task',
-          children: [],
-          isDone: false,
-        })
-        rootTask.save()
-        setRootTask(rootTask)
+      try {
+        const rootTask = await db.tasks.get(TASK_ROOT_ID)
+        if (rootTask instanceof Task) {
+          await rootTask.repareChildren()
+          setRootTask(rootTask)
+          const tasks = await db.tasks
+            .where('id')
+            .anyOf(rootTask.children)
+            .toArray()
+          const _todoList = tasks.map((t) =>
+            t instanceof Task ? t : new Task(t)
+          )
+          logger.debug('setTodoList', _todoList)
+          setTodoList(_todoList)
+        } else {
+          const rootTask = new Task({
+            id: TASK_ROOT_ID,
+            name: 'root',
+            description: 'root task',
+            children: [],
+            isDone: false,
+          })
+          rootTask.save()
+          setRootTask(rootTask)
+        }
+      } catch (err) {
+        logger.error('initial asyncFn', err.message, err.stack, err)
       }
     }
     storeEvent.on(INITIATED, asyncFn)

@@ -64,20 +64,28 @@ export class TodoIteratorDatabase extends Dexie {
 
   /**
    * Handle not be catched event
-   * @param err {unknown} unhandled error
-   * @returns whether reload needed or not
+   * @param err {unknown} Unhandled error
+   * @returns Whether error handled or not
    */
   async handleRejection(err: unknown) {
     if (err instanceof Dexie.NotFoundError) {
       // If NotFoundError then delete all data on indexedDB
       logger.error('NotFoundError', err.message, err.stack, err)
-      await this.transaction('rw', this.tasks, async () => {
+      try {
         await this.tasks.clear()
         await this.delete()
-      })
-      return true
+      } catch (err) {
+        // Do nothing since indexedDB is already deleted
+      }
+      return {
+        isHandled: true,
+        reload: true,
+      }
     }
-    return false
+    return {
+      isHandled: false,
+      reload: false,
+    }
   }
 }
 

@@ -75,12 +75,14 @@ export default function App() {
 
     window.onunhandledrejection = async (event: PromiseRejectionEvent) => {
       logger.error('onunhandledrejection', event)
-      const isRestructure = await db.handleRejection(event.reason)
-      if (isRestructure) {
+      storeService.reset()
+      const { isHandled, reload } = await db.handleRejection(event.reason)
+      if (isHandled) {
         event.preventDefault()
         event.stopPropagation()
         event.cancelBubble = true
-        storeService.reset()
+      }
+      if (reload) {
         window.location.reload()
       }
     }
