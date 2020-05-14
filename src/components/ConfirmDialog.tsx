@@ -1,5 +1,4 @@
-import * as React from 'react'
-import { FunctionComponent } from 'react'
+import React, { PropsWithChildren } from 'react'
 import Button from '@material-ui/core/Button'
 import Dialog from '@material-ui/core/Dialog'
 import DialogActions from '@material-ui/core/DialogActions'
@@ -15,7 +14,7 @@ export interface ConfirmDialogProps {
   onCancel: () => void
 }
 
-const ConfirmDialog: FunctionComponent<ConfirmDialogProps> = (props) => {
+const ConfirmDialog = (props: PropsWithChildren<ConfirmDialogProps>) => {
   const { onOk, onCancel, title, content, open } = props
 
   return (

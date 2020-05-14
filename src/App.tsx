@@ -19,7 +19,7 @@ import GdriveIcon from './components/icons/GdriveIcon'
 import ServiceContext from './contexts/service-context'
 import MenuItem from '@material-ui/core/MenuItem'
 import Menu from '@material-ui/core/Menu'
-import { LAST_SYNCED, RELOAD_THRESHOLD } from './constants/local-storage'
+import { RELOAD_THRESHOLD } from './constants/local-storage'
 import { useHistory } from 'react-router-dom'
 import { db } from './services/local-db'
 const logger = createLogger({ filename: 'App.tsx' })

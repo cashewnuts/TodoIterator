@@ -1,11 +1,12 @@
-import * as React from 'react'
-import { FunctionComponent } from 'react'
+import React, { PropsWithChildren } from 'react'
 import { Switch, Route, useParams, useRouteMatch } from 'react-router-dom'
 import TodoAppChild from './TodoAppChild'
 
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface TodoRecursiveProps {}
 
-const TodoRecursive: FunctionComponent<TodoRecursiveProps> = (props) => {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const TodoRecursive = (props: PropsWithChildren<TodoRecursiveProps>) => {
   const { url } = useRouteMatch()
   const { todoId = '' } = useParams()
   return (

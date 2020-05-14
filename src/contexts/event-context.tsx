@@ -1,9 +1,4 @@
-import React, {
-  createContext,
-  FunctionComponent,
-  PropsWithChildren,
-  useState,
-} from 'react'
+import React, { createContext, PropsWithChildren, useState } from 'react'
 import { EventEmitter } from 'events'
 import * as EventNames from '../constants/store-event'
 import { createLogger } from '../services/logger'
@@ -19,7 +14,7 @@ export interface EventContextProviderProps {
   render: (e: EventContextType) => void
 }
 
-export const EventContextProvider: FunctionComponent<EventContextProviderProps> = (
+export const EventContextProvider = (
   props: PropsWithChildren<EventContextProviderProps>
 ) => {
   const [eventContext] = useState({

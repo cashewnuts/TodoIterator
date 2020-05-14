@@ -1,10 +1,9 @@
-import * as React from 'react'
-import {
+import React, {
   useEffect,
   useState,
   SyntheticEvent,
   ChangeEvent,
-  FunctionComponent,
+  PropsWithChildren,
   useContext,
 } from 'react'
 import Box from '@material-ui/core/Box'
@@ -25,7 +24,7 @@ const logger = createLogger({ filename: 'TodoApp.tsx' })
 export interface TodoAppProps {}
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-const TodoApp: FunctionComponent<TodoAppProps> = (props) => {
+const TodoApp = (props: PropsWithChildren<TodoAppProps>) => {
   const { storeEvent } = useContext(EventContext)
   const [todoName, setTodoName] = useState<string>('')
   const [todoList, setTodoList] = useState<Task[]>([])
@@ -71,7 +70,8 @@ const TodoApp: FunctionComponent<TodoAppProps> = (props) => {
     asyncFn()
   }, [storeEvent])
 
-  const handleItemClick = (value: any) => (event: any) => {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const handleItemClick = (value: string) => (event: unknown) => {
     history.push(`/nest/${value.substring(0, 7)}`)
   }
   const handleAddingTodoNameChange = (event: ChangeEvent<HTMLInputElement>) => {
@@ -157,7 +157,7 @@ const TodoApp: FunctionComponent<TodoAppProps> = (props) => {
                 <TodoListItem
                   key={`${todo.id} ${todo.isDone} ${todo.children}`}
                   todo={todo}
-                  onListClick={handleItemClick(todo.id)}
+                  onListClick={handleItemClick(todo.id || '')}
                   onToggle={handleToggleTodo(todo.id as string)}
                   onDelete={handleDeleteConfrim(todo.id as string)}
                   onChangeName={handleChangeNameTodo(todo.id as string)}

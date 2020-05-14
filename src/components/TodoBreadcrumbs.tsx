@@ -1,5 +1,4 @@
-import React, { useEffect, useState } from 'react'
-import { FunctionComponent } from 'react'
+import React, { useEffect, useState, PropsWithChildren } from 'react'
 import Breadcrumbs from '@material-ui/core/Breadcrumbs'
 import {
   Switch,
@@ -12,7 +11,8 @@ import { db } from '../services/local-db'
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface TodoRecursiveProps {}
 
-const TodoBreadcrumbs: FunctionComponent<TodoRecursiveProps> = () => {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const TodoBreadcrumbs = (props: PropsWithChildren<TodoRecursiveProps>) => {
   const { url } = useRouteMatch()
   const [breads, setBreads] = useState<{ id: string; href: string }[]>([])
   useEffect(() => {

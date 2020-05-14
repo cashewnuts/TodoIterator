@@ -1,11 +1,10 @@
-import * as React from 'react'
-import {
+import React, {
   useEffect,
   useState,
   SyntheticEvent,
   ChangeEvent,
   FocusEvent,
-  FunctionComponent,
+  PropsWithChildren,
 } from 'react'
 import Button from '@material-ui/core/Button'
 import DoneIcon from '@material-ui/icons/Done'
@@ -28,9 +27,9 @@ export interface TodoAppChildProps {
   todoId: string
 }
 
-const TodoAppChild: FunctionComponent<TodoAppChildProps> = (props) => {
+const TodoAppChild = (props: PropsWithChildren<TodoAppChildProps>) => {
   const { todoId } = props
-  let { url } = useRouteMatch()
+  const { url } = useRouteMatch()
   const [todoList, setTodoList] = useState<Task[]>([])
   const [rootTask, setRootTask] = useState<Task>()
   const [rootTaskDone, setRootTaskDone] = useState<boolean>(false)
@@ -46,7 +45,7 @@ const TodoAppChild: FunctionComponent<TodoAppChildProps> = (props) => {
   const [deleteDialogParams, setDeleteDialogParams] = useState<{
     id: string
   } | null>(null)
-  let history = useHistory()
+  const history = useHistory()
 
   useEffect(() => {
     const asyncInitFn = async () => {
@@ -79,16 +78,20 @@ const TodoAppChild: FunctionComponent<TodoAppChildProps> = (props) => {
       }
     }
     asyncInitFn()
-    return () => {}
+    return () => {
+      // clean up
+    }
   }, [todoId, history])
 
-  const handleItemClick = (value: any) => (event: any) => {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const handleItemClick = (value: string) => (event: unknown) => {
     history.push(`${url}/${value.substring(0, 7)}`)
   }
   const handleTodoNameChange = (event: ChangeEvent<HTMLInputElement>) => {
     const { value } = event.target
     setTodoName(value)
   }
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const handleToggleRootTask = (event: SyntheticEvent<HTMLButtonElement>) => {
     if (!rootTask) return
     rootTask.isDone = !rootTask.isDone
@@ -231,7 +234,7 @@ const TodoAppChild: FunctionComponent<TodoAppChildProps> = (props) => {
                   key={`${todo.id} ${todo.isDone} ${todo.children}`}
                   todo={todo}
                   disableCheckbox={rootTaskDone}
-                  onListClick={handleItemClick(todo.id)}
+                  onListClick={handleItemClick(todo.id || '')}
                   onToggle={handleToggleTodo(todo.id as string)}
                   onDelete={handleDeleteConfrim(todo.id as string)}
                   onChangeName={handleChangeNameTodo(todo.id as string)}

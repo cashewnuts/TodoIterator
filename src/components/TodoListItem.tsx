@@ -1,5 +1,4 @@
-import * as React from 'react'
-import { useState, FormEvent } from 'react'
+import React, { useState, FormEvent, PropsWithChildren } from 'react'
 import DeleteIcon from '@material-ui/icons/Delete'
 import EditIcon from '@material-ui/icons/Edit'
 import ClearIcon from '@material-ui/icons/Clear'
@@ -24,7 +23,7 @@ export interface TodoListItemProps {
   onDelete: (event: SyntheticEvent<HTMLButtonElement>) => void
   onChangeName: (value: string) => void
 }
-export default (props: TodoListItemProps) => {
+const TodoListItem = (props: PropsWithChildren<TodoListItemProps>) => {
   const {
     todo,
     disableCheckbox = false,
@@ -108,3 +107,5 @@ export default (props: TodoListItemProps) => {
     </ListItem>
   )
 }
+
+export default TodoListItem
