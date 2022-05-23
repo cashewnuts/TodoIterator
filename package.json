@@ -11,7 +11,7 @@
     "@testing-library/react": "10.0.1",
     "@types/lodash": "^4.14.150",
     "@types/react-router-dom": "5.1.3",
-    "dexie": "2.0.4",
+    "dexie": "3.2.2",
     "events": "^3.1.0",
     "lodash": "^4.17.15",
     "pino": "^6.2.0",
